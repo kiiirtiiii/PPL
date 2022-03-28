@@ -82,10 +82,12 @@ const addLikes = async (req, res, next) => {
 
     await findPost.updateOne({ likeCount: totalLikes[0].numberOfLikes });
 
+    const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
+
     res.status(200).json({
       success: true,
       result: {
-        likes: findPost.likeCount,
+        likes: findUpdatedPost.likeCount,
       },
     });
   } catch (err) {
@@ -119,11 +121,12 @@ const removeLikes = async (req, res, next) => {
     ]);
 
     await findPost.updateOne({ likeCount: totalLikes[0].numberOfLikes });
+    const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
     res.status(200).json({
       success: true,
       result: {
-        likes: findPost.likeCount,
+        likes: findUpdatedPost.likeCount,
       },
     });
   } catch (err) {
@@ -169,10 +172,12 @@ const addComments = async (req, res, next) => {
       commentCount: totalComments[0].numberOfComments,
     });
 
+    const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
+
     res.status(200).json({
       success: true,
       result: {
-        comments: findPost.commentCount,
+        comments: findUpdatedPost.commentCount,
       },
     });
   } catch (err) {
@@ -208,11 +213,12 @@ const flagPost = async (req, res, next) => {
     ]);
 
     await findPost.updateOne({ flagCount: totalFlags[0].numberOfFlags });
+    const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
     res.status(200).json({
       success: true,
       result: {
-        flags: findPost.flagCount,
+        flags: findUpdatedPost.flagCount,
       },
     });
   } catch (err) {
@@ -246,11 +252,12 @@ const unflagPost = async (req, res, next) => {
     ]);
 
     await findPost.updateOne({ flagCount: totalFlags[0].numberOfFlags });
+    const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
     res.status(200).json({
       success: true,
       result: {
-        flags: findPost.flagCount,
+        flags: findUpdatedPost.flagCount,
       },
     });
   } catch (err) {
