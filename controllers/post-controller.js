@@ -1,3 +1,12 @@
+// Error response
+const { fileNotSelect, postNotFound } = require("../constants/error-message");
+
+// Success response
+const {
+  successfulPostUplaod,
+  success,
+} = require("../constants/success-message");
+
 const { Post } = require("../models/post-model");
 
 // create post API
@@ -5,8 +14,8 @@ const createPost = async (req, res, next) => {
   try {
     // if user does not select any file
     if (!req.file) {
-      const err = new Error("File not selected");
-      err.status = 406;
+      const err = fileNotSelect.err;
+      err.status = fileNotSelect.status;
       throw err;
     }
 
@@ -24,9 +33,9 @@ const createPost = async (req, res, next) => {
 
     await newPost.save();
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
-      result: "post uploaded",
+      result: successfulPostUplaod.msg,
     });
   } catch (err) {
     next(err);
@@ -39,12 +48,12 @@ const showPost = async (req, res, next) => {
     const findPost = await Post.findOne({ _id: req.params.postid });
 
     if (!findPost) {
-      const err = new Error("Post does not exist");
-      err.status = 404;
+      const err = postNotFound.err;
+      err.status = postNotFound.status;
       throw err;
     }
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: findPost,
     });
@@ -64,8 +73,8 @@ const addLikes = async (req, res, next) => {
     );
 
     if (!findPost) {
-      const err = new Error("Post does not exist");
-      err.status = 404;
+      const err = postNotFound.err;
+      err.status = postNotFound.status;
       throw err;
     }
 
@@ -84,7 +93,7 @@ const addLikes = async (req, res, next) => {
 
     const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: {
         likes: findUpdatedPost.likeCount,
@@ -104,8 +113,8 @@ const removeLikes = async (req, res, next) => {
     );
 
     if (!findPost) {
-      const err = new Error("Post does not exist");
-      err.status = 404;
+      const err = postNotFound.err;
+      err.status = postNotFound.status;
       throw err;
     }
 
@@ -123,7 +132,7 @@ const removeLikes = async (req, res, next) => {
     await findPost.updateOne({ likeCount: totalLikes[0].numberOfLikes });
     const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: {
         likes: findUpdatedPost.likeCount,
@@ -152,8 +161,8 @@ const addComments = async (req, res, next) => {
     );
 
     if (!findPost) {
-      const err = new Error("Post does not exist");
-      err.status = 404;
+      const err = postNotFound.err;
+      err.status = postNotFound.status;
       throw err;
     }
 
@@ -174,7 +183,7 @@ const addComments = async (req, res, next) => {
 
     const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: {
         comments: findUpdatedPost.commentCount,
@@ -196,8 +205,8 @@ const flagPost = async (req, res, next) => {
     );
 
     if (!findPost) {
-      const err = new Error("Post does not exist");
-      err.status = 404;
+      const err = postNotFound.err;
+      err.status = postNotFound.status;
       throw err;
     }
 
@@ -215,7 +224,7 @@ const flagPost = async (req, res, next) => {
     await findPost.updateOne({ flagCount: totalFlags[0].numberOfFlags });
     const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: {
         flags: findUpdatedPost.flagCount,
@@ -235,8 +244,8 @@ const unflagPost = async (req, res, next) => {
     );
 
     if (!findPost) {
-      const err = new Error("Post does not exist");
-      err.status = 404;
+      const err = postNotFound.err;
+      err.status = postNotFound.status;
       throw err;
     }
 
@@ -254,7 +263,7 @@ const unflagPost = async (req, res, next) => {
     await findPost.updateOne({ flagCount: totalFlags[0].numberOfFlags });
     const findUpdatedPost = await Post.findOne({ _id: req.params.postid });
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: {
         flags: findUpdatedPost.flagCount,

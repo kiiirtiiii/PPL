@@ -14,12 +14,35 @@ const {
 const { verifyToken } = require("../auth/verify-tokens");
 const { Post } = require("../models/post-model");
 
+// Error responses
+const {
+  passwordNotSame,
+  userNotVerified,
+  userNotFound,
+  wrongPassword,
+  invalidEmail,
+  unatchedToken,
+  unmatchedToken,
+} = require("../constants/error-message");
+
+// Successful responses
+const {
+  successfulRegistration,
+  successfulVerification,
+  successfulSignin,
+  verificationEmailSent,
+  resetPassEmailSent,
+  successfulPassReset,
+  success,
+  updatedUserDetails,
+} = require("../constants/success-message");
+
 // User registration API
 const registerUser = async (req, res, next) => {
   try {
     if (req.body.password !== req.body.confirmPassword) {
-      const err = new Error("Both passwords does not match");
-      err.status = 406;
+      const err = passwordNotSame.err;
+      err.status = passwordNotSame.status;
       throw err;
     }
 
@@ -46,8 +69,8 @@ const registerUser = async (req, res, next) => {
     await sendMail(registrationEmail);
 
     res
-      .status(200)
-      .json({ success: true, result: "User registration successful" });
+      .status(success.status)
+      .json({ success: true, result: successfulRegistration.msg });
   } catch (err) {
     next(err);
   }
@@ -61,8 +84,8 @@ const verifyUser = async (req, res, next) => {
     const findVerifyUser = await User.findOne({ _id: verifyUser.id });
 
     if (findVerifyUser.verification_code !== verifyUser.verification_code) {
-      const err = new Error("User is not verified. Try again");
-      err.status = 401;
+      const err = userNotVerified.err;
+      err.status = userNotVerified.status;
       throw err;
     }
 
@@ -71,7 +94,9 @@ const verifyUser = async (req, res, next) => {
       { verification_code: "", verified: true }
     );
 
-    res.status(200).json({ success: true, result: "User verified" });
+    res
+      .status(success.status)
+      .json({ success: true, result: successfulVerification.msg });
   } catch (err) {
     next(err);
   }
@@ -83,22 +108,22 @@ const signinUser = async (req, res, next) => {
     const foundUser = await User.findOne({ email: req.body.email });
 
     if (!foundUser) {
-      const err = new Error("User does not exist");
-      err.status = 406;
+      const err = userNotFound.err;
+      err.status = userNotFound.status;
       throw err;
     }
 
     const result = await decrypt(req.body.password, foundUser.password);
 
     if (!result) {
-      const err = new Error("Wrong Password");
-      err.status = 406;
+      const err = wrongPassword.err;
+      err.status = wrongPassword.status;
       throw err;
     }
 
     if (foundUser.verified !== true) {
-      const err = new Error("User not verified");
-      err.status = 401;
+      const err = userNotVerified.err;
+      err.status = userNotVerified.status;
       throw err;
     }
 
@@ -107,10 +132,11 @@ const signinUser = async (req, res, next) => {
       id: foundUser._id,
       fName: foundUser.fName,
     });
-    await res.status(200).json({
+
+    await res.status(success.status).json({
       success: true,
       token: token,
-      result: "User sign-in successful",
+      result: successfulSignin.msg,
     });
   } catch (err) {
     next(err);
@@ -123,8 +149,8 @@ const verifyEmail = async (req, res, next) => {
     const reverifiedUser = await User.findOne({ email: req.body.email });
 
     if (!reverifiedUser) {
-      const err = new Error("Invalid Email");
-      err.status = 406;
+      const err = invalidEmail.err;
+      err.status = invalidEmail.status;
       throw err;
     }
 
@@ -142,7 +168,9 @@ const verifyEmail = async (req, res, next) => {
     );
     await sendMail(registrationEmail);
 
-    res.status(200).json({ success: true, result: "Verification email sent" });
+    res
+      .status(success.status)
+      .json({ success: true, result: verificationEmailSent.msg });
   } catch (err) {
     next(err);
   }
@@ -160,10 +188,10 @@ const forgetPassword = async (req, res, next) => {
     const forgetPassEmail = forgetPassEmailTemplate(req.body.email, token);
     await sendMail(forgetPassEmail);
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       token: token,
-      result: "Reset password email sent to user",
+      result: resetPassEmailSent.msg,
     });
   } catch (err) {
     next(err);
@@ -177,14 +205,14 @@ const resetPassword = async (req, res, next) => {
     const verifyUser = await verifyToken(req.params.token);
 
     if (!verifyUser) {
-      const err = new Error("Token does not match");
-      err.status = 401;
+      const err = unmatchedToken.err;
+      err.status = unmatchedToken.status;
       throw err;
     }
 
     if (req.body.password !== req.body.confirmPassword) {
-      const err = new Error("Both passwords does not match");
-      err.status = 406;
+      const err = passwordNotSame.err;
+      err.status = passwordNotSame.status;
       throw err;
     }
 
@@ -195,8 +223,8 @@ const resetPassword = async (req, res, next) => {
     );
 
     res
-      .status(200)
-      .json({ success: true, result: "Password reset sucessfully" });
+      .status(success.status)
+      .json({ success: true, result: successfulPassReset.msg });
   } catch (err) {
     next(err);
   }
@@ -208,8 +236,8 @@ const showProfile = async (req, res, next) => {
     const checkUser = await User.findOne({ _id: req.userDetails.id });
 
     if (!checkUser) {
-      const err = new Error("User not found");
-      err.status = 404;
+      const err = userNotFound.err;
+      err.status = userNotFound.status;
       throw err;
     }
 
@@ -220,7 +248,7 @@ const showProfile = async (req, res, next) => {
       posts: await Post.find({ postedBy: req.userDetails.id }),
     };
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
       result: showUserDetails,
     });
@@ -235,16 +263,16 @@ const editProfile = async (req, res, next) => {
     const checkUser = await User.findOne({ _id: req.userDetails.id });
 
     if (!checkUser) {
-      const err = new Error("User not found");
-      err.status = 404;
+      const err = userNotFound.err;
+      err.status = userNotFound.status;
       throw err;
     }
 
     await checkUser.updateOne({ fName: req.body.fName, lName: req.body.lName });
 
-    res.status(200).json({
+    res.status(success.status).json({
       success: true,
-      result: "User details updated",
+      result: updatedUserDetails.msg,
     });
   } catch (err) {
     next(err);
