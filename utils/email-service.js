@@ -16,10 +16,3 @@ const sendMail = async (emailTemplate) => {
 };
 
 module.exports = { sendMail };
-// let mailOptions = {
-//   from: process.env.senderEmail,
-//   to: "",
-//   subject: "",
-//   text: "",
-//   html: "",
-// };
